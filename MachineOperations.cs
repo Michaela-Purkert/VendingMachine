@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ConsoleTools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -42,7 +43,7 @@ namespace VendingMachine
                 Console.WriteLine(i + 1 + ":\t" + drinks[i]);
             }
             Console.WriteLine("Choose a number of drink you want to buy:");
-            int idFromList = InputControl();
+            int idFromList = CheckPositiveInt();
 
             int itemPrice = drinks[idFromList - 1].price;
 
@@ -57,25 +58,20 @@ namespace VendingMachine
 
                 else
                     Console.WriteLine("This drink is no longer available");
+                Console.ReadKey();
             }
 
             else
+            {
                 Console.WriteLine("The request cannot be fulfilled");
+                Console.ReadKey();
+            }
         }
-
-        //public int ReturnBalance()
-        //{
-        //    return balance;
-        //}
-
-        //public void PutMoneyIn(int cash)
-        //{
-        //    balance = cash;
-        //}
 
         public int ReturnBalance()
         {
             Console.WriteLine("You have: {0} Kc left", balance);
+            Console.ReadKey();
             return balance;
         }
 
@@ -84,56 +80,78 @@ namespace VendingMachine
             if (balance > 0)
             {
                 Console.WriteLine("You have withdrawn {0} Kc", balance);
+                Console.ReadKey();
                 balance = 0;
                 return balance;
             }
             else
+            {
                 Console.WriteLine("There are no money to withdraw");
+                Console.ReadKey();
+            }
             return balance;
         }
 
-        public int InputControl()
+        public int CheckPositiveInt()
         {
-            bool inputCheck;
-
-            string stream = Console.ReadLine();
-
-            if (String.IsNullOrEmpty(stream))
+            int option;
+            bool CheckPositiveInt = false;
+            do
             {
-                throw new Exception("Input must be an integer");
-            }
-
-            else
-            {
-                inputCheck = int.TryParse(stream, out int input);
-
-                if (input >= 0)
+                string input = Console.ReadLine();
+                if (int.TryParse(input, out option))
                 {
-                    return input;
+                    if (option > 0)
+                    {
+                        CheckPositiveInt = true;
+                    }
+
+                    else
+                    {
+                        Console.WriteLine("The inserted number must be positive\n");
+                        Console.WriteLine("Try it again:");
+                    }
                 }
-
                 else
-                    throw new Exception("Input must be a positive number");
-            }
-
-
+                {
+                    Console.WriteLine("Input must be a positive number\n");
+                    Console.WriteLine("Try it again:");
+                }
+            } while (CheckPositiveInt == false);
+            return option;
         }
+
+        //public int CheckPositiveInt()
+        //{
+        //    bool inputCheck;
+        //    string stream = Console.ReadLine();
+
+        //    if (String.IsNullOrEmpty(stream))
+        //    {
+        //        throw new Exception("Input must be an integer");
+        //    }
+
+        //    else
+        //    {
+        //        inputCheck = int.TryParse(stream, out int input);
+
+        //        if (input >= 0)
+        //        {
+        //            return input;
+        //        }
+
+        //        else
+        //            throw new Exception("Input must be a positive number");
+        //    }
+        //}
         private void PutMoneyIn()
         {
 
             Console.WriteLine("Choose an amount of cash you want to put in");
 
-            balance = balance + InputControl();
+            balance = balance + CheckPositiveInt();
+            Console.ReadKey();
         }
-
-        //public void PutMoneyIn(int castka)
-        //{
-
-        //    Console.WriteLine("Zadejte castku, kterou chcete vlozit:");
-
-        //    balance = balance + castka;
-        //}
-
         private void WriteList()
         {
             Console.WriteLine("List of drinks:");
@@ -141,6 +159,7 @@ namespace VendingMachine
             {
                 Console.WriteLine(i.ToString());
             }
+            Console.ReadKey();
         }
 
         private void WriteNumberOfDrinks()
@@ -149,77 +168,98 @@ namespace VendingMachine
             var write = String.Join("\n", numberOfDrinks.Select(kvp => kvp.Key + ":  \t" +
                             kvp.Value.ToString()));
             Console.WriteLine(write);
-        }
-
-
-        private void ShowMenu()
-        {
-            Console.WriteLine("Welcome to the vending machine app\nPlease choose an optionNumber from menu below:");
-            Console.WriteLine("1 - Put money in");
-            Console.WriteLine("2 - Check balance");
-            Console.WriteLine("3 - Withdraw balance");
-            Console.WriteLine("4 - List of drinks");
-            Console.WriteLine("5 - Remaining number of drinks");
-            Console.WriteLine("6 - Buy a drink");
-            Console.WriteLine("7 - End program");
+            Console.ReadKey();
         }
         public void Menu()
         {
-            string option;
-            bool check;
-            int optionNumber;
-
-            bool checkContinue = true;
-
-            do
-            {
-                ShowMenu();
-                option = Console.ReadLine();
-                check = int.TryParse(option, out optionNumber);
-
-                switch (optionNumber)
+            var menu = new ConsoleMenu()
+                .Add("Put money in", () => PutMoneyIn())
+                .Add("Check balance", () => ReturnBalance())
+                .Add("Withdraw balance", () => WithdrawBalance())
+                .Add("List of drinks", () => WriteList())
+                .Add("Remaining number of drinks", () => WriteNumberOfDrinks())
+                .Add("Buy a drink", () => BuyItem())
+                .Add("End program", ConsoleMenu.Close)
+                .Configure(config =>
                 {
-                    case 1:
-                        PutMoneyIn();
-                        Console.Clear();
-                        break;
-                    case 2:
-                        ReturnBalance();
-                        Console.ReadKey();
-                        Console.Clear();
-                        break;
-                    case 3:
-                        WithdrawBalance();
-                        Console.ReadKey();
-                        Console.Clear();
-                        break;
-                    case 4:
-                        WriteList();
-                        Console.ReadKey();
-                        Console.Clear();
-                        break;
-                    case 5:
-                        WriteNumberOfDrinks();
-                        Console.ReadKey();
-                        Console.Clear();
-                        break;
-                    case 6:
-                        BuyItem();
-                        Console.ReadKey();
-                        Console.Clear();
-                        break;
-                    case 7:
-                        checkContinue = false;
-                        break;
+                    config.Selector = "--> ";
+                    config.Title = "Welcome to the vending machine app";
+                    config.EnableWriteTitle = false;
+                    config.EnableBreadcrumb = true;
+                });
 
-                    default:
-                        Console.WriteLine("Invalid option");
-                        Console.ReadKey();
-                        Console.Clear();
-                        break;
-                }
-
-            } while (checkContinue == true);
+            menu.Show();
         }
+
+        // ----- An old menu -----
+        //private void ShowMenu()
+        //{
+        //    Console.WriteLine("Welcome to the vending machine app\nPlease choose an optionNumber from menu below:");
+        //    Console.WriteLine("1 - Put money in");
+        //    Console.WriteLine("2 - Check balance");
+        //    Console.WriteLine("3 - Withdraw balance");
+        //    Console.WriteLine("4 - List of drinks");
+        //    Console.WriteLine("5 - Remaining number of drinks");
+        //    Console.WriteLine("6 - Buy a drink");
+        //    Console.WriteLine("7 - End program");
+        //}
+        //public void Menu()
+        //{
+        //    string option;
+        //    bool check;
+        //    int optionNumber;
+
+        //    bool checkContinue = true;
+
+        //    do
+        //    {
+        //        ShowMenu();
+        //        option = Console.ReadLine();
+        //        check = int.TryParse(option, out optionNumber);
+
+        //        switch (optionNumber)
+        //        {
+        //            case 1:
+        //                PutMoneyIn();
+        //                Console.Clear();
+        //                break;
+        //            case 2:
+        //                ReturnBalance();
+        //                Console.ReadKey();
+        //                Console.Clear();
+        //                break;
+        //            case 3:
+        //                WithdrawBalance();
+        //                Console.ReadKey();
+        //                Console.Clear();
+        //                break;
+        //            case 4:
+        //                WriteList();
+        //                Console.ReadKey();
+        //                Console.Clear();
+        //                break;
+        //            case 5:
+        //                WriteNumberOfDrinks();
+        //                Console.ReadKey();
+        //                Console.Clear();
+        //                break;
+        //            case 6:
+        //                BuyItem();
+        //                Console.ReadKey();
+        //                Console.Clear();
+        //                break;
+        //            case 7:
+        //                checkContinue = false;
+        //                break;
+
+        //            default:
+        //                Console.WriteLine("Invalid option");
+        //                Console.ReadKey();
+        //                Console.Clear();
+        //                break;
+        //        }
+
+        //    } while (checkContinue == true);
+        //}
     }
 }
